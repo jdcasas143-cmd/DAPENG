@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAPENG - Digital Assistant for Procurement, Expenditures, and National Governance</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-full flex flex-col overflow-hidden">
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Top Navbar -->
+    <header class="bg-slate-900 text-white shadow-md z-30 flex items-center justify-between px-6 py-3 shrink-0">
+        <div class="flex items-center space-x-3">
+            <button id="sidebar-toggle" class="text-slate-300 hover:text-white md:hidden focus:outline-none">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center space-x-2">
+                <div class="bg-indigo-600 text-white p-2 rounded-lg font-bold shadow-inner flex items-center justify-center w-10 h-10">
+                    <i class="fa-solid fa-landmark text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide">DAPENG</h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Digital Assistant for Procurement, Expenditures, and National Governance</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <!-- OneDrive Integration Indicator -->
+            <div id="onedrive-status" class="hidden sm:flex items-center space-x-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-xs text-slate-300">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>OneDrive Sync: <strong class="text-white">Active (Local/Cloud Simulation)</strong></span>
+            </div>
+            <!-- Backup & Export -->
+            <button onclick="exportSystemData()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+                <span class="hidden md:inline">Export & Backup</span>
+            </button>
+            <!-- User Profile -->
+            <div class="flex items-center space-x-2 pl-2 border-l border-slate-700">
+                <img src="https://placehold.co/40x40/4f46e5/ffffff?text=AD" alt="Admin" class="w-8 h-8 rounded-full border border-indigo-400 object-cover">
+                <div class="hidden lg:block text-left text-xs">
+                    <p class="font-semibold text-slate-200">Atty. Gov. Director</p>
+                    <p class="text-slate-400">Chief Procurement Officer</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main App Layout -->
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="bg-slate-900 text-slate-300 w-64 flex flex-col shrink-0 transition-all duration-300 z-20 absolute md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 border-r border-slate-800">
+            <div class="p-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Navigation Menu</div>
+            <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
+                <a href="#dashboard" onclick="switchTab('dashboard')" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition bg-indigo-600 text-white" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                    <span>Dashboard Overview</span>
+                </a>
+                <a href="#suppliers" onclick="switchTab('suppliers')" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white" data-tab="suppliers">
+                    <i class="fa-solid fa-truck-field w-5 text-center"></i>
+                    <span>Supplier Database</span>
+                </a>
+                <a href="#inventory" onclick="switchTab('inventory')" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white" data-tab="inventory">
+                    <i class="fa-solid fa-boxes-stacked w-5 text-center"></i>
+                    <span>Inventory Management</span>
+                </a>
+                <a href="#procurement" onclick="switchTab('procurement')" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white" data-tab="procurement">
+                    <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i>
+                    <span>Procurement Monitoring</span>
+                </a>
+                <a href="#issuances" onclick="switchTab('issuances')" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white" data-tab="issuances">
+                    <i class="fa-solid fa-hand-holding-box w-5 text-center"></i>
+                    <span>Issuances & Requisitions</span>
+                </a>
+                <a href="#disposal" onclick="switchTab('disposal')" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white" data-tab="disposal">
+                    <i class="fa-solid fa-trash-can-arrow-up w-5 text-center"></i>
+                    <span>Disposal & Condemnation</span>
+                </a>
+            </nav>
+
+            <!-- OneDrive Sync Settings Box -->
+            <div class="p-3 m-3 bg-slate-800/80 border border-slate-700/60 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-200 flex items-center space-x-1.5">
+                        <i class="fa-brands fa-microsoft text-sky-400"></i>
+                        <span>OneDrive Sync</span>
+                    </span>
+                    <span id="sync-status-badge" class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">Synced</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mb-2">Target Folder: <code class="text-slate-300">/DAPENG_Cloud/Gov_Logs</code></p>
+                <button onclick="triggerOneDriveSync()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium py-1.5 px-2 rounded transition flex items-center justify-center space-x-1">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Sync Now</span>
+                </button>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
+                DAPENG v2.4 Enterprise &bull; National Governance
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto bg-slate-100 p-4 md:p-6 flex flex-col">
+            
+            <!-- 1. DASHBOARD OVERVIEW TAB -->
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Dashboard Overview</h2>
+                        <p class="text-sm text-slate-500">Real-time metrics, budget tracking, and procurement activity monitors.</p>
+                    </div>
+                    <div class="mt-3 md:mt-0 flex space-x-2">
+                        <button onclick="switchTab('procurement')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>New Procurement Request</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Metrics Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Allocated Budget</p>
+                            <h3 id="stat-budget" class="text-2xl font-bold text-slate-900 mt-1">₱ 48,500,000</h3>
+                            <span class="text-xs text-emerald-600 font-medium flex items-center mt-1">
+                                <i class="fa-solid fa-arrow-trend-up mr-1"></i> ₱12.4M expended YTD
+                            </span>
+                        </div>
+                        <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-peso-sign"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Suppliers</p>
+                            <h3 id="stat-suppliers" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                            <span class="text-xs text-indigo-600 font-medium flex items-center mt-1">
+                                <i class="fa-solid fa-circle-check mr-1"></i> Verified accredited
+                            </span>
+                        </div>
+                        <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-truck-field"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Inventory Stock Items</p>
+                            <h3 id="stat-inventory" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                            <span id="stat-lowstock-alert" class="text-xs text-amber-600 font-medium flex items-center mt-1">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> 0 items low stock
+                            </span>
+                        </div>
+                        <div class="bg-amber-50 text-amber-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending PRs / RFQs</p>
+                            <h3 id="stat-pending-proc" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                            <span class="text-xs text-blue-600 font-medium flex items-center mt-1">
+                                <i class="fa-solid fa-clock mr-1"></i> In procurement pipeline
+                            </span>
+                        </div>
+                        <div class="bg-blue-50 text-blue-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Split Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Procurement Activity Feed -->
+                    <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-900 flex items-center space-x-2">
+                                <i class="fa-solid fa-wave-square text-indigo-600"></i>
+                                <span>Recent Procurement & Inventory Activity</span>
+                            </h3>
+                            <button onclick="switchTab('procurement')" class="text-xs text-indigo-600 font-semibold hover:underline">View All &rarr;</button>
+                        </div>
+                        <div id="activity-feed" class="space-y-3 flex-1 overflow-y-auto max-h-[350px]">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Status Summary Card -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-slate-900 mb-4 flex items-center space-x-2">
+                                <i class="fa-solid fa-chart-pie text-indigo-600"></i>
+                                <span>Procurement Status Breakdown</span>
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                                        <span>Pending / Requisition</span>
+                                        <span id="count-pending">0</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2">
+                                        <div id="bar-pending" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                                        <span>Bidding / RFQ</span>
+                                        <span id="count-bidding">0</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2">
+                                        <div id="bar-bidding" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                                        <span>Awarded / PO Issued</span>
+                                        <span id="count-awarded">0</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2">
+                                        <div id="bar-awarded" class="bg-indigo-500 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                                        <span>Delivered & Completed</span>
+                                        <span id="count-delivered">0</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2">
+                                        <div id="bar-delivered" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-100 bg-indigo-50/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-600 font-medium">💡 <strong class="text-indigo-900">Governance Tip:</strong> All procurement files are backed up locally and packaged for OneDrive sync securely.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SUPPLIER DATABASE TAB -->
+            <div id="tab-suppliers" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Supplier Database</h2>
+                        <p class="text-sm text-slate-500">Manage accredited vendors, contact details, tax identification numbers (TIN), and profiles.</p>
+                    </div>
+                    <div class="mt-3 md:mt-0 flex space-x-2">
+                        <button onclick="openSupplierModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Add New Supplier</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="relative w-full md:w-96">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="supplier-search" oninput="renderSuppliers()" placeholder="Search suppliers by name, TIN, category..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex items-center space-x-2 w-full md:w-auto">
+                        <select id="supplier-filter-cat" onchange="renderSuppliers()" class="text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">All Categories</option>
+                            <option value="IT & Electronics">IT & Electronics</option>
+                            <option value="Office Supplies">Office Supplies</option>
+                            <option value="Heavy Equipment">Heavy Equipment</option>
+                            <option value="General Services">General Services</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                                    <th class="p-4">Supplier / Vendor</th>
+                                    <th class="p-4">Category</th>
+                                    <th class="p-4">Contact Info</th>
+                                    <th class="p-4">TIN & Address</th>
+                                    <th class="p-4">Rating</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliers-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. INVENTORY MANAGEMENT TAB -->
+            <div id="tab-inventory" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Inventory Management</h2>
+                        <p class="text-sm text-slate-500">Item catalog, stock cards, stock-in/stock-out logs, and automated low-stock warnings.</p>
+                    </div>
+                    <div class="mt-3 md:mt-0 flex space-x-2">
+                        <button onclick="openInventoryModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-box-open"></i>
+                            <span>Add Inventory Item</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="relative w-full md:w-96">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="inventory-search" oninput="renderInventory()" placeholder="Search item name, SKU, category..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="filterInventoryStatus('all')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 inv-filter-btn active-filter" data-filter="all">All Items</button>
+                        <button onclick="filterInventoryStatus('low')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 inv-filter-btn" data-filter="low">Low Stock Alerts</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                                    <th class="p-4">Item & Photo</th>
+                                    <th class="p-4">SKU / Category</th>
+                                    <th class="p-4">Stock Level</th>
+                                    <th class="p-4">Unit Price</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Stock Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. PROCUREMENT MONITORING TAB -->
+            <div id="tab-procurement" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Procurement Monitoring</h2>
+                        <p class="text-sm text-slate-500">End-to-end tracking: Purchase Requests (PR), RFQ, Abstract of Quotations (AOQ), PO, and PDF uploads.</p>
+                    </div>
+                    <div class="mt-3 md:mt-0 flex space-x-2">
+                        <button onclick="openProcurementModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-file-circle-plus"></i>
+                            <span>New Purchase Request (PR)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="relative w-full md:w-96">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="proc-search" oninput="renderProcurement()" placeholder="Search PR No, title, end-user..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <select id="proc-filter-status" onchange="renderProcurement()" class="text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Bidding">Bidding / RFQ</option>
+                            <option value="Awarded">Awarded / PO</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                                    <th class="p-4">PR / Tracking No</th>
+                                    <th class="p-4">Project / Particulars</th>
+                                    <th class="p-4">Estimated Budget</th>
+                                    <th class="p-4">Current Stage</th>
+                                    <th class="p-4">Supporting PDF</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="procurement-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. ISSUANCES & REQUISITIONS TAB -->
+            <div id="tab-issuances" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Issuances & Requisitions</h2>
+                        <p class="text-sm text-slate-500">Property Transfer Slips (PTS) and Requisition & Issue Slips (RIS) assigned to personnel.</p>
+                    </div>
+                    <div class="mt-3 md:mt-0 flex space-x-2">
+                        <button onclick="openIssuanceModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-file-signature"></i>
+                            <span>New Property Issuance</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="relative w-full md:w-96">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="issuance-search" oninput="renderIssuances()" placeholder="Search personnel, item, slip no..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                                    <th class="p-4">Slip / Ref No</th>
+                                    <th class="p-4">Personnel & Department</th>
+                                    <th class="p-4">Issued Item</th>
+                                    <th class="p-4">Qty</th>
+                                    <th class="p-4">Date Issued</th>
+                                    <th class="p-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="issuances-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. DISPOSAL & CONDEMNATION TAB -->
+            <div id="tab-disposal" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Disposal & Condemnation</h2>
+                        <p class="text-sm text-slate-500">Unserviceable item registry, Waste Materials Report (WMR), disposal methods, and audit trails.</p>
+                    </div>
+                    <div class="mt-3 md:mt-0 flex space-x-2">
+                        <button onclick="openDisposalModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Log Disposal / Condemnation</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="relative w-full md:w-96">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="disposal-search" oninput="renderDisposal()" placeholder="Search unserviceable item, WMR no..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                                    <th class="p-4">WMR No / Item</th>
+                                    <th class="p-4">Reason for Condemnation</th>
+                                    <th class="p-4">Appraised Value</th>
+                                    <th class="p-4">Disposal Method</th>
+                                    <th class="p-4">Date Logged</th>
+                                    <th class="p-4 text-right">Audit Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="disposal-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Supplier Modal -->
+    <div id="supplier-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 id="supplier-modal-title" class="font-bold text-lg text-slate-900">Add New Supplier</h3>
+                <button onclick="closeSupplierModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="supplier-form" onsubmit="saveSupplier(event)" class="space-y-4 pt-4">
+                <input type="hidden" id="supplier-id">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Supplier / Company Name *</label>
+                    <input type="text" id="sup-name" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Category *</label>
+                        <select id="sup-category" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="IT & Electronics">IT & Electronics</option>
+                            <option value="Office Supplies">Office Supplies</option>
+                            <option value="Heavy Equipment">Heavy Equipment</option>
+                            <option value="General Services">General Services</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">TIN Number *</label>
+                        <input type="text" id="sup-tin" required placeholder="000-000-000-000" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Contact Number *</label>
+                        <input type="text" id="sup-contact" required placeholder="+63 912 345 6789" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Performance Rating (1-5)</label>
+                        <input type="number" id="sup-rating" min="1" max="5" value="5" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Business Address *</label>
+                    <input type="text" id="sup-address" required placeholder="Full office/warehouse address" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Supplier Profile Photo / Logo</label>
+                    <input type="file" id="sup-photo" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeSupplierModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition">Save Supplier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inventory Modal -->
+    <div id="inventory-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 id="inventory-modal-title" class="font-bold text-lg text-slate-900">Add Inventory Item</h3>
+                <button onclick="closeInventoryModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="inventory-form" onsubmit="saveInventory(event)" class="space-y-4 pt-4">
+                <input type="hidden" id="inv-id">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Item Name *</label>
+                    <input type="text" id="inv-name" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">SKU / Code *</label>
+                        <input type="text" id="inv-sku" required placeholder="SKU-XXX-001" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Category *</label>
+                        <select id="inv-category" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="IT Equipment">IT Equipment</option>
+                            <option value="Office Consumables">Office Consumables</option>
+                            <option value="Furniture & Fixture">Furniture & Fixture</option>
+                            <option value="Machinery">Machinery</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Initial Stock *</label>
+                        <input type="number" id="inv-stock" required min="0" value="10" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Reorder Level *</label>
+                        <input type="number" id="inv-reorder" required min="1" value="5" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Unit Price (₱) *</label>
+                        <input type="number" id="inv-price" required step="0.01" min="0" value="1500.00" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Item Photo</label>
+                    <input type="file" id="inv-photo" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeInventoryModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Procurement Modal -->
+    <div id="procurement-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 id="proc-modal-title" class="font-bold text-lg text-slate-900">New Purchase Request (PR)</h3>
+                <button onclick="closeProcurementModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="procurement-form" onsubmit="saveProcurement(event)" class="space-y-4 pt-4">
+                <input type="hidden" id="proc-id">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">PR Number *</label>
+                        <input type="text" id="proc-number" required placeholder="PR-2026-001" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Estimated Budget (₱) *</label>
+                        <input type="number" id="proc-budget" required step="0.01" min="0" placeholder="50000.00" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Project Particulars / Title *</label>
+                    <input type="text" id="proc-title" required placeholder="Procurement of Laptops for IT Division" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Procurement Stage / Status *</label>
+                        <select id="proc-status" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="Pending">Pending (PR Stage)</option>
+                            <option value="Bidding">Bidding / RFQ</option>
+                            <option value="Awarded">Awarded / PO Issued</option>
+                            <option value="Delivered">Delivered & Completed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">End-User / Dept *</label>
+                        <input type="text" id="proc-dept" required placeholder="IT Infrastructure Dept" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Supporting Document (PDF / Quotation / Abstract)</label>
+                    <input type="file" id="proc-pdf" accept=".pdf,.doc,.docx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeProcurementModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition">Save Procurement Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Issuance Modal -->
+    <div id="issuance-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-lg text-slate-900">New Property Issuance (PTS / RIS)</h3>
+                <button onclick="closeIssuanceModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="issuance-form" onsubmit="saveIssuance(event)" class="space-y-4 pt-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Slip No (PTS/RIS) *</label>
+                        <input type="text" id="iss-no" required placeholder="PTS-2026-001" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Select Inventory Item *</label>
+                        <select id="iss-item" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Personnel Name *</label>
+                        <input type="text" id="iss-person" required placeholder="Juan Dela Cruz" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Quantity *</label>
+                        <input type="number" id="iss-qty" required min="1" value="1" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Personnel Photo / Signature ID</label>
+                    <input type="file" id="iss-photo" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeIssuanceModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition">Issue Property</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Disposal Modal -->
+    <div id="disposal-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-lg text-slate-900">Log Disposal / Condemnation (WMR)</h3>
+                <button onclick="closeDisposalModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="disposal-form" onsubmit="saveDisposal(event)" class="space-y-4 pt-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Waste Materials Report No (WMR) *</label>
+                        <input type="text" id="disp-wmr" required placeholder="WMR-2026-001" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Unserviceable Item Name *</label>
+                        <input type="text" id="disp-item" required placeholder="Defective Office Printer / Server" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Disposal Method *</label>
+                        <select id="disp-method" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="Public Auction / Sale">Public Auction / Sale</option>
+                            <option value="Destruction / Condemnation">Destruction / Condemnation</option>
+                            <option value="Agency Transfer">Agency Transfer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Appraised Residual Value (₱) *</label>
+                        <input type="number" id="disp-value" required min="0" step="0.01" value="500.00" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Reason for Condemnation *</label>
+                    <textarea id="disp-reason" required rows="2" placeholder="Beyond economic repair / Obsolete technology" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeDisposalModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition">Log Disposal Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- Application State ---
+        let db = {
+            suppliers: [
+                { id: '1', name: 'Apex Tech Solutions Inc.', category: 'IT & Electronics', tin: '008-456-789-001', contact: '+63 917 555 0192', rating: 5, address: 'Makati Techno Hub, Metro Manila', photo: 'https://placehold.co/100x100/6366f1/ffffff?text=APEX' },
+                { id: '2', name: 'National Office Depot', category: 'Office Supplies', tin: '002-123-456-003', contact: '+63 922 888 1234', rating: 4, address: 'Quezon City Commercial Center', photo: 'https://placehold.co/100x100/10b981/ffffff?text=NOD' }
+            ],
+            inventory: [
+                { id: '1', name: 'Enterprise Business Laptop i7', sku: 'SKU-IT-001', category: 'IT Equipment', stock: 12, reorder: 5, price: 48500.00, photo: 'https://placehold.co/100x100/e0e7ff/4f46e5?text=Laptop' },
+                { id: '2', name: 'Heavy Duty Laser Printer', sku: 'SKU-IT-002', category: 'IT Equipment', stock: 3, reorder: 5, price: 18200.00, photo: 'https://placehold.co/100x100/e0e7ff/4f46e5?text=Printer' },
+                { id: '3', name: 'Ergonomic Executive Chair', sku: 'SKU-FUR-001', category: 'Furniture & Fixture', stock: 25, reorder: 10, price: 6500.00, photo: 'https://placehold.co/100x100/e0e7ff/4f46e5?text=Chair' }
+            ],
+            procurement: [
+                { id: '1', number: 'PR-2026-001', title: 'Procurement of Laptops for IT Division', budget: 582000.00, status: 'Awarded', dept: 'IT Infrastructure Dept', pdfName: 'PR_2026_001_Approved.pdf' },
+                { id: '2', number: 'PR-2026-002', title: 'Quarterly Office Consumables & Bond Paper', budget: 85000.00, status: 'Bidding', dept: 'Admin Services', pdfName: 'RFQ_Consumables_2026.pdf' },
+                { id: '3', number: 'PR-2026-003', title: 'Executive Ergonomic Chairs for Conference Room', budget: 130000.00, status: 'Delivered', dept: 'Executive Office', pdfName: 'PO_Chairs_Signed.pdf' }
+            ],
+            issuances: [
+                { id: '1', slipNo: 'PTS-2026-001', item: 'Enterprise Business Laptop i7', person: 'Maria Santos', qty: 1, date: '2026-06-12', photo: 'https://placehold.co/80x80/6366f1/ffffff?text=MS' }
+            ],
+            disposal: [
+                { id: '1', wmrNo: 'WMR-2026-001', item: 'Legacy Pentium IV Desktop Units (5 pcs)', reason: 'Obsolete technology / Beyond repair', value: 1200.00, method: 'Destruction / Condemnation', date: '2026-05-20' }
+            ],
+            activityFeed: [
+                { text: 'PR-2026-001 status updated to Awarded', time: '10 mins ago', icon: 'fa-circle-check text-emerald-500' },
+                { text: 'New supplier added: Apex Tech Solutions Inc.', time: '1 hour ago', icon: 'fa-truck-field text-indigo-500' },
+                { text: 'Low stock alert triggered for Heavy Duty Laser Printer', time: '3 hours ago', icon: 'fa-triangle-exclamation text-amber-500' },
+                { text: 'Property Transfer Slip PTS-2026-001 issued to Maria Santos', time: 'Yesterday', icon: 'fa-file-signature text-blue-500' }
+            ]
+        };
+
+        // --- Toast Notifications ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center space-x-2 px-4 py-3 rounded-xl shadow-lg text-xs font-semibold text-white transition-all transform translate-y-2 opacity-0 ${type === 'success' ? 'bg-slate-900 border border-slate-700' : 'bg-rose-600'}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-exclamation'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // --- Navigation Tabs ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-indigo-600', 'text-white');
+                el.classList.add('hover:bg-slate-800', 'hover:text-white', 'text-slate-300');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeNav = document.querySelector(`[data-tab="${tabId}"]`);
+            if (activeNav) {
+                activeNav.classList.add('bg-indigo-600', 'text-white');
+                activeNav.classList.remove('hover:bg-slate-800', 'hover:text-white', 'text-slate-300');
+            }
+
+            // Close mobile sidebar if open
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+
+            // Refresh data render
+            renderDashboard();
+        }
+
+        // Sidebar toggle for mobile
+        document.getElementById('sidebar-toggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        });
+
+        // --- Render Dashboard Metrics & Feeds ---
+        function renderDashboard() {
+            // Stats
+            document.getElementById('stat-suppliers').innerText = db.suppliers.length;
+            document.getElementById('stat-inventory').innerText = db.inventory.reduce((acc, item) => acc + parseInt(item.stock), 0);
+            document.getElementById('stat-pending-proc').innerText = db.procurement.filter(p => p.status === 'Pending' || p.status === 'Bidding').length;
+
+            const lowStockCount = db.inventory.filter(i => i.stock <= i.reorder).length;
+            const lowAlertEl = document.getElementById('stat-lowstock-alert');
+            lowAlertEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${lowStockCount} items low stock`;
+
+            // Status Breakdown
+            const totalProc = db.procurement.length || 1;
+            const counts = { Pending: 0, Bidding: 0, Awarded: 0, Delivered: 0 };
+            db.procurement.forEach(p => { if(counts[p.status] !== undefined) counts[p.status]++; });
+
+            document.getElementById('count-pending').innerText = counts.Pending;
+            document.getElementById('count-bidding').innerText = counts.Bidding;
+            document.getElementById('count-awarded').innerText = counts.Awarded;
+            document.getElementById('count-delivered').innerText = counts.Delivered;
+
+            document.getElementById('bar-pending').style.width = `${(counts.Pending / totalProc) * 100}%`;
+            document.getElementById('bar-bidding').style.width = `${(counts.Bidding / totalProc) * 100}%`;
+            document.getElementById('bar-awarded').style.width = `${(counts.Awarded / totalProc) * 100}%`;
+            document.getElementById('bar-delivered').style.width = `${(counts.Delivered / totalProc) * 100}%`;
+
+            // Activity Feed
+            const feedEl = document.getElementById('activity-feed');
+            feedEl.innerHTML = db.activityFeed.map(act => `
+                <div class="flex items-start space-x-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition">
+                    <div class="mt-0.5"><i class="fa-solid ${act.icon}"></i></div>
+                    <div class="flex-1 text-xs">
+                        <p class="font-medium text-slate-800">${act.text}</p>
+                        <span class="text-slate-400 text-[10px]">${act.time}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            renderSuppliers();
+            renderInventory();
+            renderProcurement();
+            renderIssuances();
+            renderDisposal();
+            updateItemSelectOptions();
+        }
+
+        // --- Supplier Management ---
+        function openSupplierModal(id = null) {
+            document.getElementById('supplier-modal').classList.remove('hidden');
+            if (id) {
+                const sup = db.suppliers.find(s => s.id === id);
+                document.getElementById('supplier-modal-title').innerText = 'Edit Supplier';
+                document.getElementById('supplier-id').value = sup.id;
+                document.getElementById('sup-name').value = sup.name;
+                document.getElementById('sup-category').value = sup.category;
+                document.getElementById('sup-tin').value = sup.tin;
+                document.getElementById('sup-contact').value = sup.contact;
+                document.getElementById('sup-rating').value = sup.rating;
+                document.getElementById('sup-address').value = sup.address;
+            } else {
+                document.getElementById('supplier-modal-title').innerText = 'Add New Supplier';
+                document.getElementById('supplier-form').reset();
+                document.getElementById('supplier-id').value = '';
+            }
+        }
+        function closeSupplierModal() { document.getElementById('supplier-modal').classList.add('hidden'); }
+
+        function saveSupplier(e) {
+            e.preventDefault();
+            const id = document.getElementById('supplier-id').value;
+            const name = document.getElementById('sup-name').value;
+            const category = document.getElementById('sup-category').value;
+            const tin = document.getElementById('sup-tin').value;
+            const contact = document.getElementById('sup-contact').value;
+            const rating = document.getElementById('sup-rating').value;
+            const address = document.getElementById('sup-address').value;
+            const photoInput = document.getElementById('sup-photo');
+
+            let photoUrl = 'https://placehold.co/100x100/6366f1/ffffff?text=' + encodeURIComponent(name.charAt(0));
+            if (id) {
+                const existing = db.suppliers.find(s => s.id === id);
+                if (existing) photoUrl = existing.photo;
+            }
+
+            if (photoInput.files && photoInput.files[0]) {
+                photoUrl = URL.createObjectURL(photoInput.files[0]);
+            }
+
+            if (id) {
+                db.suppliers = db.suppliers.map(s => s.id === id ? { ...s, name, category, tin, contact, rating, address, photo: photoUrl } : s);
+                showToast('Supplier updated successfully.');
+            } else {
+                db.suppliers.push({ id: Date.now().toString(), name, category, tin, contact, rating, address, photo: photoUrl });
+                db.activityFeed.unshift({ text: `New supplier accredited: ${name}`, time: 'Just now', icon: 'fa-truck-field text-indigo-500' });
+                showToast('New supplier registered successfully.');
+            }
+
+            closeSupplierModal();
+            renderDashboard();
+        }
+
+        function deleteSupplier(id) {
+            if (confirm('Are you sure you want to remove this supplier?')) {
+                db.suppliers = db.suppliers.filter(s => s.id !== id);
+                showToast('Supplier removed.', 'error');
+                renderDashboard();
+            }
+        }
+
+        function renderSuppliers() {
+            const search = document.getElementById('supplier-search').value.toLowerCase();
+            const filterCat = document.getElementById('supplier-filter-cat').value;
+            const tbody = document.getElementById('suppliers-table-body');
+
+            const filtered = db.suppliers.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(search) || s.tin.includes(search) || s.category.toLowerCase().includes(search);
+                const matchCat = filterCat === '' || s.category === filterCat;
+                return matchSearch && matchCat;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No suppliers found matching criteria.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 flex items-center space-x-3">
+                        <img src="${s.photo}" alt="${s.name}" class="w-10 h-10 rounded-lg object-cover border border-slate-200">
+                        <div>
+                            <p class="font-semibold text-slate-900">${s.name}</p>
+                            <span class="text-xs text-slate-400">ID: SUP-${s.id.slice(-4)}</span>
+                        </div>
+                    </td>
+                    <td class="p-4"><span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full text-xs font-semibold">${s.category}</span></td>
+                    <td class="p-4 text-xs">
+                        <p class="font-medium text-slate-700"><i class="fa-solid fa-phone mr-1 text-slate-400"></i> ${s.contact}</p>
+                    </td>
+                    <td class="p-4 text-xs">
+                        <p class="font-medium text-slate-700">TIN: ${s.tin}</p>
+                        <p class="text-slate-400 truncate max-w-xs">${s.address}</p>
+                    </td>
+                    <td class="p-4 text-amber-500 font-semibold text-xs">
+                        ${'★'.repeat(s.rating)}${'☆'.repeat(5 - s.rating)} (${s.rating}.0)
+                    </td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="openSupplierModal('${s.id}')" class="text-slate-400 hover:text-indigo-600 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteSupplier('${s.id}')" class="text-slate-400 hover:text-rose-600 transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- Inventory Management ---
+        let currentInvFilter = 'all';
+        function filterInventoryStatus(filter) {
+            currentInvFilter = filter;
+            document.querySelectorAll('.inv-filter-btn').forEach(btn => {
+                if(btn.dataset.filter === filter) {
+                    btn.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 inv-filter-btn active-filter';
+                } else {
+                    btn.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 inv-filter-btn';
+                }
+            });
+            renderInventory();
+        }
+
+        function openInventoryModal(id = null) {
+            document.getElementById('inventory-modal').classList.remove('hidden');
+            if (id) {
+                const item = db.inventory.find(i => i.id === id);
+                document.getElementById('inventory-modal-title').innerText = 'Edit Inventory Item';
+                document.getElementById('inv-id').value = item.id;
+                document.getElementById('inv-name').value = item.name;
+                document.getElementById('inv-sku').value = item.sku;
+                document.getElementById('inv-category').value = item.category;
+                document.getElementById('inv-stock').value = item.stock;
+                document.getElementById('inv-reorder').value = item.reorder;
+                document.getElementById('inv-price').value = item.price;
+            } else {
+                document.getElementById('inventory-modal-title').innerText = 'Add Inventory Item';
+                document.getElementById('inventory-form').reset();
+                document.getElementById('inv-id').value = '';
+            }
+        }
+        function closeInventoryModal() { document.getElementById('inventory-modal').classList.add('hidden'); }
+
+        function saveInventory(e) {
+            e.preventDefault();
+            const id = document.getElementById('inv-id').value;
+            const name = document.getElementById('inv-name').value;
+            const sku = document.getElementById('inv-sku').value;
+            const category = document.getElementById('inv-category').value;
+            const stock = parseInt(document.getElementById('inv-stock').value);
+            const reorder = parseInt(document.getElementById('inv-reorder').value);
+            const price = parseFloat(document.getElementById('inv-price').value);
+            const photoInput = document.getElementById('inv-photo');
+
+            let photoUrl = 'https://placehold.co/100x100/e0e7ff/4f46e5?text=' + encodeURIComponent(name.charAt(0));
+            if (id) {
+                const existing = db.inventory.find(i => i.id === id);
+                if (existing) photoUrl = existing.photo;
+            }
+            if (photoInput.files && photoInput.files[0]) {
+                photoUrl = URL.createObjectURL(photoInput.files[0]);
+            }
+
+            if (id) {
+                db.inventory = db.inventory.map(i => i.id === id ? { ...i, name, sku, category, stock, reorder, price, photo: photoUrl } : i);
+                showToast('Inventory item updated.');
+            } else {
+                db.inventory.push({ id: Date.now().toString(), name, sku, category, stock, reorder, price, photo: photoUrl });
+                db.activityFeed.unshift({ text: `New inventory item cataloged: ${name}`, time: 'Just now', icon: 'fa-box-open text-indigo-500' });
+                showToast('New item added to inventory.');
+            }
+
+            closeInventoryModal();
+            renderDashboard();
+        }
+
+        function adjustStock(id, amount) {
+            const item = db.inventory.find(i => i.id === id);
+            if (item) {
+                item.stock = Math.max(0, item.stock + amount);
+                showToast(`Stock updated for ${item.name} (${amount > '+' ? '+' : ''}${amount})`);
+                renderDashboard();
+            }
+        }
+
+        function renderInventory() {
+            const search = document.getElementById('inventory-search').value.toLowerCase();
+            const tbody = document.getElementById('inventory-table-body');
+
+            const filtered = db.inventory.filter(i => {
+                const matchSearch = i.name.toLowerCase().includes(search) || i.sku.toLowerCase().includes(search) || i.category.toLowerCase().includes(search);
+                const matchFilter = currentInvFilter === 'all' || (currentInvFilter === 'low' && i.stock <= i.reorder);
+                return matchSearch && matchFilter;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No inventory items found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(i => {
+                const isLow = i.stock <= i.reorder;
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 flex items-center space-x-3">
+                            <img src="${i.photo}" alt="${i.name}" class="w-10 h-10 rounded-lg object-cover border border-slate-200">
+                            <div>
+                                <p class="font-semibold text-slate-900">${i.name}</p>
+                                <span class="text-xs text-slate-400">SKU: ${i.sku}</span>
+                            </div>
+                        </td>
+                        <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-xs font-semibold">${i.category}</span></td>
+                        <td class="p-4">
+                            <span class="font-bold ${isLow ? 'text-rose-600' : 'text-slate-900'}">${i.stock} units</span>
+                            <span class="block text-[10px] text-slate-400">Reorder at: ${i.reorder}</span>
+                        </td>
+                        <td class="p-4 font-semibold text-slate-800">₱ ${i.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        <td class="p-4">
+                            ${isLow ? '<span class="bg-rose-50 text-rose-600 px-2 py-0.5 rounded text-xs font-semibold flex items-center w-fit"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Low Stock</span>' : '<span class="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-xs font-semibold flex items-center w-fit"><i class="fa-solid fa-circle-check mr-1"></i> Optimal</span>'}
+                        </td>
+                        <td class="p-4 text-right space-x-1">
+                            <button onclick="adjustStock('${id=i.id}', 1)" title="Stock In (+1)" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 p-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                            <button onclick="adjustStock('${id=i.id}', -1)" title="Stock Out (-1)" class="bg-amber-50 text-amber-600 hover:bg-amber-100 p-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-minus"></i></button>
+                            <button onclick="openInventoryModal('${i.id}')" class="text-slate-400 hover:text-indigo-600 p-1.5 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // --- Procurement Monitoring ---
+        function openProcurementModal() {
+            document.getElementById('procurement-modal').classList.remove('hidden');
+            document.getElementById('procurement-form').reset();
+            document.getElementById('proc-id').value = '';
+        }
+        function closeProcurementModal() { document.getElementById('procurement-modal').classList.add('hidden'); }
+
+        function saveProcurement(e) {
+            e.preventDefault();
+            const number = document.getElementById('proc-number').value;
+            const title = document.getElementById('proc-title').value;
+            const budget = parseFloat(document.getElementById('proc-budget').value);
+            const status = document.getElementById('proc-status').value;
+            const dept = document.getElementById('proc-dept').value;
+            const pdfInput = document.getElementById('proc-pdf');
+
+            let pdfName = 'Supporting_Document.pdf';
+            if (pdfInput.files && pdfInput.files[0]) {
+                pdfName = pdfInput.files[0].name;
+            }
+
+            db.procurement.push({ id: Date.now().toString(), number, title, budget, status, dept, pdfName });
+            db.activityFeed.unshift({ text: `New PR logged: ${number} - ${title} (${status})`, time: 'Just now', icon: 'fa-file-invoice-dollar text-indigo-500' });
+            showToast('Procurement record saved successfully.');
+
+            closeProcurementModal();
+            renderDashboard();
+        }
+
+        function updateProcStatus(id, newStatus) {
+            const p = db.procurement.find(item => item.id === id);
+            if(p) {
+                p.status = newStatus;
+                db.activityFeed.unshift({ text: `PR ${p.number} stage updated to ${newStatus}`, time: 'Just now', icon: 'fa-circle-check text-emerald-500' });
+                showToast(`Status updated to ${newStatus}`);
+                renderDashboard();
+            }
+        }
+
+        function renderProcurement() {
+            const search = document.getElementById('proc-search').value.toLowerCase();
+            const filterStatus = document.getElementById('proc-filter-status').value;
+            const tbody = document.getElementById('procurement-table-body');
+
+            const filtered = db.procurement.filter(p => {
+                const matchSearch = p.number.toLowerCase().includes(search) || p.title.toLowerCase().includes(search) || p.dept.toLowerCase().includes(search);
+                const matchStatus = filterStatus === '' || p.status === filterStatus;
+                return matchSearch && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No procurement records found.</td></tr>`;
+                return;
+            }
+
+            const statusColors = {
+                'Pending': 'bg-amber-50 text-amber-600',
+                'Bidding': 'bg-blue-50 text-blue-600',
+                'Awarded': 'bg-indigo-50 text-indigo-600',
+                'Delivered': 'bg-emerald-50 text-emerald-600'
+            };
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 font-semibold text-slate-900">${p.number}</td>
+                    <td class="p-4">
+                        <p class="font-medium text-slate-800">${p.title}</p>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-building mr-1"></i> ${p.dept}</span>
+                    </td>
+                    <td class="p-4 font-semibold text-slate-900">₱ ${p.budget.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    <td class="p-4">
+                        <select onchange="updateProcStatus('${p.id}', this.value)" class="text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 ${statusColors[p.status]} focus:outline-none">
+                            <option value="Pending" ${p.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Bidding" ${p.status === 'Bidding' ? 'selected' : ''}>Bidding / RFQ</option>
+                            <option value="Awarded" ${p.status === 'Awarded' ? 'selected' : ''}>Awarded / PO</option>
+                            <option value="Delivered" ${p.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                        </select>
+                    </td>
+                    <td class="p-4 text-xs">
+                        <a href="#" onclick="showToast('Simulated preview of PDF: ${p.pdfName}')" class="text-indigo-600 hover:underline flex items-center space-x-1 font-medium">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i>
+                            <span class="truncate max-w-[120px]">${p.pdfName}</span>
+                        </a>
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteProcurement('${p.id}')" class="text-slate-400 hover:text-rose-600 transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteProcurement(id) {
+            if(confirm('Delete this procurement record?')) {
+                db.procurement = db.procurement.filter(p => p.id !== id);
+                showToast('Procurement record deleted.', 'error');
+                renderDashboard();
+            }
+        }
+
+        // --- Issuances & Requisitions ---
+        function updateItemSelectOptions() {
+            const select = document.getElementById('iss-item');
+            if (select) {
+                select.innerHTML = db.inventory.map(i => `<option value="${i.name}">${i.name} (Stock: ${i.stock})</option>`).join('');
+            }
+        }
+
+        function openIssuanceModal() {
+            document.getElementById('issuance-modal').classList.remove('hidden');
+            document.getElementById('issuance-form').reset();
+            updateItemSelectOptions();
+        }
+        function closeIssuanceModal() { document.getElementById('issuance-modal').classList.add('hidden'); }
+
+        function saveIssuance(e) {
+            e.preventDefault();
+            const slipNo = document.getElementById('iss-no').value;
+            const item = document.getElementById('iss-item').value;
+            const person = document.getElementById('iss-person').value;
+            const qty = parseInt(document.getElementById('iss-qty').value);
+            const photoInput = document.getElementById('iss-photo');
+
+            let photoUrl = 'https://placehold.co/80x80/6366f1/ffffff?text=' + encodeURIComponent(person.charAt(0));
+            if(photoInput.files && photoInput.files[0]) {
+                photoUrl = URL.createObjectURL(photoInput.files[0]);
+            }
+
+            db.issuances.push({ id: Date.now().toString(), slipNo, item, person, qty, date: new Date().toISOString().split('T')[0], photo: photoUrl });
+            db.activityFeed.unshift({ text: `Property Slip ${slipNo} issued to ${person} (${qty}x ${item})`, time: 'Just now', icon: 'fa-file-signature text-blue-500' });
+            showToast('Property issuance logged successfully.');
+
+            closeIssuanceModal();
+            renderDashboard();
+        }
+
+        function renderIssuances() {
+            const search = document.getElementById('issuance-search').value.toLowerCase();
+            const tbody = document.getElementById('issuances-table-body');
+
+            const filtered = db.issuances.filter(i => i.slipNo.toLowerCase().includes(search) || i.person.toLowerCase().includes(search) || i.item.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No issuance records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(i => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 font-semibold text-slate-900">${i.slipNo}</td>
+                    <td class="p-4 flex items-center space-x-3">
+                        <img src="${i.photo}" alt="${i.person}" class="w-8 h-8 rounded-full object-cover border border-slate-200">
+                        <div>
+                            <p class="font-semibold text-slate-900">${i.person}</p>
+                            <span class="text-xs text-slate-400">Assigned Personnel</span>
+                        </div>
+                    </td>
+                    <td class="p-4 font-medium text-slate-800">${i.item}</td>
+                    <td class="p-4"><span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full text-xs font-semibold">${i.qty} unit(s)</span></td>
+                    <td class="p-4 text-xs text-slate-500">${i.date}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="showToast('PTS Document downloaded successfully!')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-print mr-1"></i> Slip</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- Disposal & Condemnation ---
+        function openDisposalModal() {
+            document.getElementById('disposal-modal').classList.remove('hidden');
+            document.getElementById('disposal-form').reset();
+        }
+        function closeDisposalModal() { document.getElementById('disposal-modal').classList.add('hidden'); }
+
+        function saveDisposal(e) {
+            e.preventDefault();
+            const wmrNo = document.getElementById('disp-wmr').value;
+            const item = document.getElementById('disp-item').value;
+            const method = document.getElementById('disp-method').value;
+            const value = parseFloat(document.getElementById('disp-value').value);
+            const reason = document.getElementById('disp-reason').value;
+
+            db.disposal.push({ id: Date.now().toString(), wmrNo, item, method, value, reason, date: new Date().toISOString().split('T')[0] });
+            db.activityFeed.unshift({ text: `Disposal logged: WMR ${wmrNo} for ${item} (${method})`, time: 'Just now', icon: 'fa-trash-can text-rose-500' });
+            showToast('Disposal record logged successfully.');
+
+            closeDisposalModal();
+            renderDashboard();
+        }
+
+        function renderDisposal() {
+            const search = document.getElementById('disposal-search').value.toLowerCase();
+            const tbody = document.getElementById('disposal-table-body');
+
+            const filtered = db.disposal.filter(d => d.wmrNo.toLowerCase().includes(search) || d.item.toLowerCase().includes(search) || d.method.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No disposal records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(d => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4">
+                        <p class="font-semibold text-slate-900">${d.wmrNo}</p>
+                        <span class="text-xs text-slate-600">${d.item}</span>
+                    </td>
+                    <td class="p-4 text-xs text-slate-600 max-w-xs truncate">${d.reason}</td>
+                    <td class="p-4 font-semibold text-slate-900">₱ ${d.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    <td class="p-4"><span class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-xs font-semibold">${d.method}</span></td>
+                    <td class="p-4 text-xs text-slate-500">${d.date}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="showToast('WMR Audit Log verified.')" class="text-indigo-600 hover:underline text-xs font-semibold">Verify Audit</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- OneDrive Sync & Backup Export ---
+        function triggerOneDriveSync() {
+            const badge = document.getElementById('sync-status-badge');
+            badge.innerText = 'Syncing...';
+            badge.className = 'text-[10px] bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded animate-pulse';
+            setTimeout(() => {
+                badge.innerText = 'Synced';
+                badge.className = 'text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded';
+                showToast('DAPENG databases successfully synchronized with OneDrive folder /DAPENG_Cloud/Gov_Logs');
+            }, 1500);
+        }
+
+        function exportSystemData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `DAPENG_Procurement_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('System backup exported successfully.');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            renderDashboard();
+        };
+    </script>
+</body>
+</html>
